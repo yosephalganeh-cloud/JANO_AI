@@ -12,7 +12,7 @@ You need Termux with API access:
 ```bash
 pkg update && pkg upgrade
 pkg install termux-api python git -y
-git clone https://github.com/yosephalganeh-cloud/YOSEPH_JA
-cd YOSEPH_JA
+git clone https://github.com/yosephalganeh-cloud/JANO_AI
+cd JANO_AI
 pip install -r requirements.txt
 python JANO.py
