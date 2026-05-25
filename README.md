@@ -1,4 +1,4 @@
-# YOSEPH_JA - Voice AI Assistant
+# JANO_AI -Voice AI Assistant
 A voice-controlled AI assistant for Termux, powered by Python and Pollinations AI.
 
 ## Features
