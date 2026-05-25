@@ -15,4 +15,4 @@ pkg install termux-api python git -y
 git clone https://github.com/yosephalganeh-cloud/YOSEPH_JA
 cd YOSEPH_JA
 pip install -r requirements.txt
-python Jarvis.py
+python JANO.py
