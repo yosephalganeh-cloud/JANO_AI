@@ -3,6 +3,9 @@ import requests
 import time
 import urllib.parse
 import json
+import os
+
+CONFIG_FILE = "jano_config.json"
 
 def speak(text):
     print(f"\n[JANO_AI]: {text}")
@@ -21,8 +24,14 @@ def listen():
     except:
         return None
 
+def get_input(mode):
+    """የመጣበትን የግብዓት አይነት (ድምፅ ወይም ጽሑፍ) መቆጣጠሪያ"""
+    if mode == "voice":
+        return listen()
+    else:
+        return input("\n[You - Type here]: ").strip()
+
 def ask_ai(question, gender, language):
-    # AI Prompt that strictly enforces bilingual and customized responses
     prompt = f"You are JANO_AI, a highly intelligent voice assistant. The user is {gender}. The user's preferred language is {language}. CRITICAL RULE: If the user asks in Amharic, you MUST reply in Amharic. If the user asks in English, you MUST reply in English. Keep your responses short, natural, and highly accurate. User says: {question}"
     
     safe_prompt = urllib.parse.quote(prompt)
@@ -51,12 +60,21 @@ def get_wifi_info():
     except:
         return "I couldn't get the Wi-Fi information."
 
-def setup_user():
-    # 1. Ask Gender
-    speak("System starting. Please tell me your gender. Say Male or Female.")
+def setup_user(input_mode):
+    # መረጃው ቀድሞ የተቀመጠ ከሆነ ማንበብ
+    if os.path.exists(CONFIG_FILE):
+        try:
+            with open(CONFIG_FILE, "r") as f:
+                config = json.load(f)
+                return config["gender"], config["language"]
+        except:
+            pass
+
+    # መረጃው ከሌለ በአዲሱ መንገድ ጠይቆ ማስቀመጥ
+    speak("Please specify your gender. Say or type Male or Female.")
     user_gender = "Unknown"
     while True:
-        ans = listen()
+        ans = get_input(input_mode)
         if ans:
             ans_lower = ans.lower()
             if "female" in ans_lower or "ሴት" in ans_lower:
@@ -66,13 +84,12 @@ def setup_user():
                 user_gender = "Male"
                 break
             else:
-                speak("I didn't catch that. Please say Male or Female.")
+                speak("Please specify Male or Female.")
     
-    # 2. Ask Language
-    speak("Thank you. Now, which language do you prefer? Say English or Amharic.")
+    speak("Which language do you prefer? Say or type English or Amharic.")
     user_lang = "English"
     while True:
-        ans = listen()
+        ans = get_input(input_mode)
         if ans:
             ans_lower = ans.lower()
             if "amharic" in ans_lower or "አማርኛ" in ans_lower:
@@ -82,20 +99,44 @@ def setup_user():
                 user_lang = "English"
                 break
             else:
-                speak("Please say English or Amharic.")
+                speak("Please specify English or Amharic.")
                 
-    speak(f"Setup complete. Welcome to JANO AI. Created by Yoseph Alganeh. I am ready.")
+    # መረጃውን ፋይል ውስጥ መቅረጽ
+    config = {"gender": user_gender, "language": user_lang}
+    with open(CONFIG_FILE, "w") as f:
+        json.dump(config, f)
+        
+    speak("Setup complete. Memory saved.")
     return user_gender, user_lang
 
 if __name__ == "__main__":
-    # Run the setup first
-    gender, language = setup_user()
+    # ሁልጊዜ ሲነሳ መጀመሪያ የግብዓት አይነት ይጠይቃል
+    print("\nSelect Mode / ሁነታ ይምረጡ:")
+    print("1. For Voice mode, type 'voice' or 'v'")
+    print("2. For Typing mode, type 'typing' or 't'")
     
-    # Infinite loop for continuous listening without saying "continue"
+    input_mode = "voice"
     while True:
-        cmd_raw = listen()
+        mode_choice = input("Choose mode: ").strip().lower()
+        if "voice" in mode_choice or mode_choice == "v":
+            input_mode = "voice"
+            speak("Voice mode activated.")
+            break
+        elif "typing" in mode_choice or mode_choice == "t":
+            input_mode = "typing"
+            speak("Typing mode activated.")
+            break
+        else:
+            print("Invalid option. Enter 'typing' or 'voice'.")
+
+    # የተጠቃሚ መረጃ ማረጋገጫ (ከአንዴ በላይ አይጠይቅም)
+    gender, language = setup_user(input_mode)
+    speak(f"Welcome back. JANO_AI is ready in {input_mode} mode.")
+    
+    # ዋናው የስራ ክፍል
+    while True:
+        cmd_raw = get_input(input_mode)
         
-        # If nothing heard, just loop back and open mic again silently
         if not cmd_raw: 
             continue
             
@@ -130,15 +171,14 @@ if __name__ == "__main__":
             subprocess.run(["termux-vibrate", "-d", "1000"])
 
         elif "stop" in cmd or "exit" in cmd or "አቁም" in cmd:
-            speak("Shutting down JANO AI. Have a great day!")
+            speak("Shutting down JANO_AI. Goodbye!")
             break
 
         # ==========================================
-        # ASK AI (If it's not a system command)
+        # ASK AI
         # ==========================================
         else:
             ai_reply = ask_ai(cmd_raw, gender, language)
             speak(ai_reply)
         
-        # A brief pause before the mic reopens
         time.sleep(1)
