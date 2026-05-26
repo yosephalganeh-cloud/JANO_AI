@@ -102,10 +102,10 @@ def query_optimized_ai(question, language):
             return response.text.strip()
         else:
             print(f"{RED}[Debug Error]: API returned status {response.status_code}{RESET}")
-            return "ይቅርታ፣ አሁን ላይ የ AI ሰርቨሩ ስራ በዝቶበታል። እባክህ ትንሽ ቆይተህ ሞክር።"
+            return "sorry sever errori can not help you right now. please try again later."
     except Exception as e:
         print(f"{RED}[Network Error]: {e}{RESET}")
-        return "ይቅርታ፣ ኢንተርኔት ወይም ሰርቨር አልሰራ እያለ ነው።"
+        return "No Internet. please check your internet connection. "
 
 def get_battery_metrics():
     """Pulls current charging, voltage, and health attributes via Termux JSON blocks."""
